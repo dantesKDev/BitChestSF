@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -27,32 +29,27 @@ class Users
     private $password;
 
     /**
-     * @ORM\Column(type="string", length=20)
+     * @ORM\Column(type="string", length=255)
      */
     private $role;
 
     /**
      * @ORM\Column(type="string", length=255)
      */
-    private $salt;
-
-    /**
-     * @ORM\Column(type="string", length=50)
-     */
     private $email;
 
     /**
-     * @ORM\Column(type="string", length=50)
+     * @ORM\Column(type="string", length=255)
      */
     private $prenom;
 
     /**
-     * @ORM\Column(type="string", length=50)
+     * @ORM\Column(type="string", length=255)
      */
     private $nom;
 
     /**
-     * @ORM\Column(type="string", length=50)
+     * @ORM\Column(type="string", length=255)
      */
     private $ville;
 
@@ -72,9 +69,19 @@ class Users
     private $telephone;
 
     /**
-     * @ORM\Column(type="float")
+     * @ORM\Column(type="float", nullable=true)
      */
     private $solde;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Wallet", mappedBy="idUsers")
+     */
+    private $wallets;
+
+    public function __construct()
+    {
+        $this->wallets = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -113,18 +120,6 @@ class Users
     public function setRole(string $role): self
     {
         $this->role = $role;
-
-        return $this;
-    }
-
-    public function getSalt(): ?string
-    {
-        return $this->salt;
-    }
-
-    public function setSalt(string $salt): self
-    {
-        $this->salt = $salt;
 
         return $this;
     }
@@ -218,9 +213,40 @@ class Users
         return $this->solde;
     }
 
-    public function setSolde(float $solde): self
+    public function setSolde(?float $solde): self
     {
         $this->solde = $solde;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Wallet[]
+     */
+    public function getWallets(): Collection
+    {
+        return $this->wallets;
+    }
+
+    public function addWallet(Wallet $wallet): self
+    {
+        if (!$this->wallets->contains($wallet)) {
+            $this->wallets[] = $wallet;
+            $wallet->setIdUsers($this);
+        }
+
+        return $this;
+    }
+
+    public function removeWallet(Wallet $wallet): self
+    {
+        if ($this->wallets->contains($wallet)) {
+            $this->wallets->removeElement($wallet);
+            // set the owning side to null (unless already changed)
+            if ($wallet->getIdUsers() === $this) {
+                $wallet->setIdUsers(null);
+            }
+        }
 
         return $this;
     }
